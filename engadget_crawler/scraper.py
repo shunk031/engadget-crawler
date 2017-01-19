@@ -19,6 +19,7 @@ except ImportError:
 class EngadgetScraper:
 
     base_url = "https://engadget.com/"
+    none_count = 0
 
     def __init__(self, target_url, save_dir):
         self.target_url = target_url
@@ -78,13 +79,22 @@ class EngadgetScraper:
 
         detail_soup = self._make_soup(article_url)
         title_tag = detail_soup.find("h1", {"class": "t-h4@m-"})
-        title = title_tag.get_text()
+        try:
+            title = title_tag.get_text()
+        except AttributeError:
+            title = self.none_count
+            self.none_count += 1
+
         print("[ DEBUG ] Title: {}".format(title))
         article_dict["title"] = title
 
-        div_article_texts = detail_soup.find_all("div", {"class": "artcile-text"})
-        article_content = [div_article_text.get_text().strip() for div_article_text in div_article_texts]
-        article_content = " ".join(article_content)
+        try:
+            div_article_texts = detail_soup.find_all("div", {"class": "artcile-text"})
+            article_content = [div_article_text.get_text().strip() for div_article_text in div_article_texts]
+            article_content = " ".join(article_content)
+        except AttributeError:
+            article_content = None
+
         article_dict["article"] = article_content
 
         return article_dict
