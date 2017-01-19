@@ -1,0 +1,4 @@
+# wired-crawler gitignore
+
+__pycache__/
+*.csv
