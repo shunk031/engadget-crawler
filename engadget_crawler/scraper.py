@@ -82,7 +82,7 @@ class EngadgetScraper:
         try:
             title = title_tag.get_text()
         except AttributeError:
-            title = self.none_count
+            title = str(self.none_count)
             self.none_count += 1
 
         print("[ DEBUG ] Title: {}".format(title))
