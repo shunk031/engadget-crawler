@@ -31,7 +31,7 @@ class EngadgetScraper:
 
             return BeautifulSoup(html, "lxml")
         except HTTPError as e:
-            print("[ DEBUG ] in WiredScraper#make_soup: {}".format(e))
+            print("[ DEBUG ] in {}#make_soup: {}".format(self.__class__.__name__, e))
             return None
 
     def scrap(self):
