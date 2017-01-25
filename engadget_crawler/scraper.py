@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 import os
 import csv
+import traceback
 
 try:
     from urllib.request import urlopen
@@ -26,14 +27,26 @@ class EngadgetScraper:
         self.save_dir = save_dir
 
     def _make_soup(self, url):
-        try:
-            with urlopen(url) as response:
-                html = response.read()
 
-            return BeautifulSoup(html, "lxml")
-        except HTTPError as e:
-            print("[ DEBUG ] in {}#make_soup: {}".format(self.__class__.__name__, e))
-            return None
+        max_retries = 3
+        retries = 0
+
+        while True:
+            try:
+                with urlopen(url) as res:
+                    html = res.read()
+                return BeautifulSoup(html, "lxml")
+
+            except HTTPError as err:
+                print("[ EXCEPTION ] in {}#make_soup: {}".format(self.__class__.__name__, err))
+
+                retries += 1
+                if retries >= max_retries:
+                    raise Exception("Too many retries.")
+
+                wait = 2 ** (retries - 1)
+                print("[ RETRY ] Waiting {} seconds...".format(wait))
+                time.sleep(wait)
 
     def scrap(self):
         article_detail_url_list = self.get_article_detail_urls()
@@ -65,9 +78,10 @@ class EngadgetScraper:
             try:
                 abs_url = detail_url["href"]
                 url = urljoin(self.base_url, abs_url)
-                print("[ DEBUG ] Get URL: {}".format(url))
+                print("[ GET ] Get URL: {}".format(url))
                 article_detail_url_list.append(url)
-            except TypeError:
+            except TypeError as err:
+                traceback.print_tb(err.__traceback__)
                 pass
 
         return article_detail_url_list
@@ -80,19 +94,21 @@ class EngadgetScraper:
         detail_soup = self._make_soup(article_url)
         title_tag = detail_soup.find("h1", {"class": "t-h4@m-"})
         try:
-            title = title_tag.get_text()
-        except AttributeError:
+            title = title_tag.get_text().strip()
+        except AttributeError as err:
+            traceback.print_tb(err.__traceback__)
             title = str(self.none_count)
             self.none_count += 1
 
-        print("[ DEBUG ] Title: {}".format(title))
+        print("[ GET ] Title: {}".format(title))
         article_dict["title"] = title
 
         try:
             div_article_texts = detail_soup.find_all("div", {"class": "artcile-text"})
             article_content = [div_article_text.get_text().strip() for div_article_text in div_article_texts]
             article_content = " ".join(article_content)
-        except AttributeError:
+        except AttributeError as err:
+            traceback.print_tb(err.__traceback__)
             article_content = None
 
         article_dict["article"] = article_content
@@ -120,4 +136,7 @@ class EngadgetScraper:
         filename = article_title.replace(" ", "_")
         filename = filename.replace("/", "")
         filename = filename.replace("?", "")
+
+        if len(filename) > 250:
+            filename = filename[:250]
         return filename
