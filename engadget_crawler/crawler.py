@@ -97,11 +97,17 @@ class EngadgetCrawler:
             print("[ EXCEPTION ] Exception occured: {}".format(err))
             traceback.print_tb(err.__traceback__)
 
-            status_dict = {}
-            status_dict["target_url"] = self.target_url
-            status_dict["page_count"] = self.page_count
-
-            with open("status.json", "w") as wf:
-                json.dump(status_dict, wf, indent=2)
+            self.save_status()
 
         return self.FINISH_CRAWL
+
+    def save_status(self):
+
+        status_dict = {}
+        status_dict["target_url"] = self.target_url
+        status_dict["page_count"] = self.page_count
+
+        with open("status.json", "w") as wf:
+            json.dump(status_dict, wf, indent=2)
+
+        print("[ DUMP ] Dump status.json")
