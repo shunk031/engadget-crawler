@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 import os
 import csv
+import time
 import traceback
 
 try:
