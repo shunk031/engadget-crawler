@@ -25,10 +25,11 @@ class EngadgetCrawler:
 
     base_url = "https://engadget.com/"
 
-    def __init__(self, target_url, save_dir="./data"):
+    def __init__(self, target_url, save_dir="./data", page_count=1):
         self.target_url = target_url
         self.before_url = None
         self.save_dir = save_dir
+        self.page_count = page_count
 
     def _make_soup(self, url):
 
